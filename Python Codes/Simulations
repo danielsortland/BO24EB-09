@@ -1,1 +1,86 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib.patches import Circle
 
+# This program, altough it calculates the wheel speeds, does not use their values directly to cause the movement of the robot.
+# It reverts back to the desired velocities and applies them directly to the animation.
+# This is just to make a vizual representation of how the robot would move given the desired parameters.
+# The calculated wheel speeds are calculated correctly and the robot does move as intended on the physical robot.
+
+# Constants
+r = 0.06  # Wheel radius in meters
+L = 0.15  # Distance from robot's center to a wheel in meters
+f = 32    # Gear ratio 32:1
+
+# Inverse kinematics matrix (J)
+J = (1 / r) * np.array([[L, -np.sqrt(3)/2, 0.5],
+                        [L, 0, -1],
+                        [L, np.sqrt(3)/2, 0.5]])
+
+# Desired velocities
+v_x = 0.10      # linear velocity m/s (x-direction)
+v_y = 0.00      # linear velocity m/s (y-direction)
+omega = 0.10    # angular velocity rad/s
+
+# Calculate wheel speeds to achieve the desired spatial velocities
+J_inv = np.linalg.inv(J)  # Calculate the inverse of J
+
+wheel_speeds = np.dot(J_inv, np.array([omega, v_x, v_y]))  # Wheel speeds rad/s
+
+# Initialize robot state
+position = np.array([0.0, 0.0])  # Starting position of the robot's center
+angle = 0.0                      # Starting orientation of the robot
+
+# Time parameters
+dt = 0.1  # Time step for the simulation
+num_frames = 200  # Number of frames in the animation
+
+fig, ax = plt.subplots() # Sets the limits for the plot
+ax.set_xlim([-2, 2])
+ax.set_ylim([-2, 2])
+
+# Robot's body representation as a circle
+robot_body = Circle(position, L, color='grey', fill=True)
+ax.add_patch(robot_body)
+
+# Define positions of the wheels on the circumference of the robot body
+wheel_positions = [
+    [position[0] + L * np.cos(np.pi/3), position[1] + L * np.sin(np.pi/3)],
+    [position[0] + L * np.cos(np.pi), position[1] + L * np.sin(np.pi)],
+    [position[0] + L * np.cos(5*np.pi/3), position[1] + L * np.sin(5*np.pi/3)]
+]
+
+wheels = [Circle(pos, r, color='blue') for pos in wheel_positions]
+for wheel in wheels:
+    ax.add_patch(wheel)
+
+def update(frame):
+    global position, angle
+    # Apply wheel speeds to calculate movement based on the robot's design
+    # Assuming J is used correctly to apply these wheel speeds to compute resulting global motion
+    movement = np.dot(J, wheel_speeds) * dt  # Compute the contribution of each wheel to the motion
+    domega, dx, dy = movement
+
+    # Update the robot's orientation and position
+    angle += domega
+    rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)],
+                                [np.sin(angle), np.cos(angle)]])
+    delta_position = np.dot(rotation_matrix, np.array([dx, dy]))
+    position += delta_position
+
+    # Update robot body position
+    robot_body.center = position
+
+    # Update wheel positions on the circumference of the robot body
+    for i, wheel in enumerate(wheels):
+        wheel.center = [
+            position[0] + L * np.cos(np.pi + (i * 2*np.pi/3) + angle),
+            position[1] + L * np.sin(np.pi + (i * 2*np.pi/3) + angle)
+        ]
+
+    return [robot_body] + wheels
+
+# Create animation
+ani = FuncAnimation(fig, update, frames=num_frames, blit=True, interval=50)
+plt.show()
