@@ -1,1 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
 
+# Constants
+r = 0.06  # Wheel radius in meters
+L = 0.15  # Distance from robot's center to a wheel in meters
+f = 32    # Gear ratio 32:1
+
+# Inverse kinematics matrix (J)
+J = (1 / r) * np.array([[L, -np.sqrt(3)/2, 0.5],
+                            [L, 0, -1],
+                            [L, np.sqrt(3)/2, 0.5]])
+
+# Desired velocities
+v_x = 0.10       # linear velocity mm/s
+v_y = 0.00     # linear velocity mm/s
+omega = 0.0     # angular velocity rad/s
+
+# Calculate wheel speeds
+wheel_speeds = np.dot(J, np.array([omega, v_x, v_y])) # Wheel speeds rad/s
+wheel_speeds_with_f = (wheel_speeds/(2*np.pi))*60*f   # Motor rpm with gearing ratio 32:1   
+
+# Wheel positions based on their orientation from the x-axis
+wheel_positions = np.array([[L * np.cos(np.radians(60)), L * np.sin(np.radians(60))],
+                            [L * np.cos(np.radians(180)), L * np.sin(np.radians(180))],
+                            [L * np.cos(np.radians(-60)), L * np.sin(np.radians(-60))]])
+
+# Calculate velocity vectors
+angles = np.array([np.arctan2(wp[1], wp[0]) for wp in wheel_positions])
+perp_angles = angles + np.pi / 2
+velocities = np.array([[np.cos(angle) * speed, np.sin(angle) * speed] for angle, speed in zip(perp_angles, wheel_speeds_with_f)])
+
+# Calculate linear velocity direction
+linear_velocity_direction = np.arctan2(v_y, v_x)
+
+# Plotting
+fig, ax = plt.subplots()
+ax.plot(0, 0, 'ko', label='Center')  # Center of the robot
+
+# Plot wheel positions and velocity vectors
+for i, (position, velocity) in enumerate(zip(wheel_positions, velocities)):
+    ax.plot(position[0], position[1], 'o', label=f'Wheel {i+1}')
+    ax.arrow(position[0], position[1], velocity[0]/3000, velocity[1]/3000, head_width=0.005, head_length=0.01)  # Convert mm/s to m/s for plotting
+
+# Add linear velocity arrow
+arrow_length = 0.1  # Adjust arrow length as needed
+ax.arrow(0, 0, arrow_length * np.cos(linear_velocity_direction), arrow_length * np.sin(linear_velocity_direction), color='red', head_width=0.02, head_length=0.04)
+
+# Add wheel speeds in the upper left corner
+wheel_speeds_text = f'Wheel speeds (rpm):\nWheel 1: {wheel_speeds_with_f[0]:.2f}\nWheel 2: {wheel_speeds_with_f[1]:.2f}\nWheel 3: {wheel_speeds_with_f[2]:.2f}'
+ax.text(-0.4, 0.4, wheel_speeds_text, verticalalignment='top')
+
+ax.set_aspect('equal')
+ax.set_xlim([-0.5, 0.5])
+ax.set_ylim([-0.5, 0.5])
+plt.xlabel('X position (m)')
+plt.ylabel('Y position (m)')
+plt.title('Robot Wheels, Velocity Vectors, and Linear Velocity Direction')
+plt.legend()
+plt.grid(True)
+plt.show()
