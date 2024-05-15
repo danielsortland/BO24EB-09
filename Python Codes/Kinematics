@@ -1,10 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Packages needed to run this code:
+# numpy 
+# matplotlib
+
+# To install write "pip install numpy matplotlib" without the quotation marks in cmd
+
 # Constants
-r = 0.06  # Wheel radius in meters
-L = 0.15  # Distance from robot's center to a wheel in meters
-f = 32    # Gear ratio 32:1
+r = 0.0625  # Wheel radius in meters
+L = 0.175   # Distance from robot's center to a wheel in meters
+f = 32      # Gear ratio 32:1
 
 # Inverse kinematics matrix (J)
 J = (1 / r) * np.array([[L, -np.sqrt(3)/2, 0.5],
@@ -12,9 +18,9 @@ J = (1 / r) * np.array([[L, -np.sqrt(3)/2, 0.5],
                             [L, np.sqrt(3)/2, 0.5]])
 
 # Desired velocities
-v_x = 0.10       # linear velocity mm/s
-v_y = 0.00     # linear velocity mm/s
-omega = 0.0     # angular velocity rad/s
+v_x = 0.00       # linear velocity mm/s
+v_y = 0.00       # linear velocity mm/s
+omega = 0.30     # angular velocity rad/s
 
 # Calculate wheel speeds
 wheel_speeds = np.dot(J, np.array([omega, v_x, v_y])) # Wheel speeds rad/s
@@ -47,8 +53,8 @@ arrow_length = 0.1  # Adjust arrow length as needed
 ax.arrow(0, 0, arrow_length * np.cos(linear_velocity_direction), arrow_length * np.sin(linear_velocity_direction), color='red', head_width=0.02, head_length=0.04)
 
 # Add wheel speeds in the upper left corner
-wheel_speeds_text = f'Wheel speeds (rpm):\nWheel 1: {wheel_speeds_with_f[0]:.2f}\nWheel 2: {wheel_speeds_with_f[1]:.2f}\nWheel 3: {wheel_speeds_with_f[2]:.2f}'
-ax.text(-0.4, 0.4, wheel_speeds_text, verticalalignment='top')
+wheel_speeds_text = f'Wheel motor speeds (rpm):\nWheel 1: {wheel_speeds_with_f[0]:.2f}\nWheel 2: {wheel_speeds_with_f[1]:.2f}\nWheel 3: {wheel_speeds_with_f[2]:.2f}'
+ax.text(-0.49, 0.49, wheel_speeds_text, verticalalignment='top')
 
 ax.set_aspect('equal')
 ax.set_xlim([-0.5, 0.5])
@@ -59,3 +65,4 @@ plt.title('Robot Wheels, Velocity Vectors, and Linear Velocity Direction')
 plt.legend()
 plt.grid(True)
 plt.show()
+
