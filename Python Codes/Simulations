@@ -3,6 +3,12 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Circle
 
+# Packages needed to run this code:
+# numpy 
+# matplotlib
+
+# To install write "pip install numpy matplotlib" without the quotation marks in cmd
+
 # This program, altough it calculates the wheel speeds, does not use their values directly to cause the movement of the robot.
 # It reverts back to the desired velocities and applies them directly to the animation.
 # This is just to make a vizual representation of how the robot would move given the desired parameters.
@@ -21,7 +27,7 @@ J = (1 / r) * np.array([[L, -np.sqrt(3)/2, 0.5],
 # Desired velocities
 v_x = 0.10      # linear velocity m/s (x-direction)
 v_y = 0.00      # linear velocity m/s (y-direction)
-omega = 0.10    # angular velocity rad/s
+omega = 0.00    # angular velocity rad/s
 
 # Calculate wheel speeds to achieve the desired spatial velocities
 J_inv = np.linalg.inv(J)  # Calculate the inverse of J
@@ -82,5 +88,7 @@ def update(frame):
     return [robot_body] + wheels
 
 # Create animation
+plt.grid(True)
 ani = FuncAnimation(fig, update, frames=num_frames, blit=True, interval=50)
 plt.show()
+
